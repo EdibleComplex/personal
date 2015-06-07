@@ -3,15 +3,15 @@ from sys import exit
 #from random import randint ##artefactual - delete?
 
 #scene#location = 1 ## scene->, scene -> envfeatures
-life = 1 ##
+life = 1 ## in Engine->init_self (extraneous function?)
 detail = 0 ##
 description = 1 ## scene, engine->?
 description2 = 1 ## scene, engine ->?
 action_des = "you do a thing - global" ##
 action = 0 ##
 commands = ['look', 'enter'] ##
-inventory = [] ##
-enviroment = [] ##scene->envfeatures
+inventory = [] ##engine get_user_command
+enviroment = [] ##scene->envfeatures used
 ccdetail = 0
 lwadetail = 0
 bdetail = 0
@@ -36,6 +36,8 @@ class Scene(object):
 		exit(1)
 
 	def enviroment_features(location):
+		global enviroment
+		#bad form?
 		if location == 1:
 			enviroment = ccenviroment
 		elif location == 2:
@@ -44,7 +46,8 @@ class Scene(object):
 			enviroment = benviroment
 		elif location == 4:
 			enviroment = epenviroment
-	
+			##assign enviroment to global?
+
 #not worth the trouble?
 	def describe(detail, room):
 		if detail == 0:
@@ -54,82 +57,68 @@ class Scene(object):
 		#if detail = 2:
 			#print description3
 		##neccesary for good practice?#else:
-			#pass		
+			#pass
 
-	
+
 
 class Engine(object):
+    action = ""
+
+    def __init__(self):
+        #borrowed from teacher ex - what does this do?
+        print "Some bad shit went down.  Aliens are all over this fucker.  Watch out."
+        self.location = a_place.location
 
 
-	def __init__(self):
 
-		#borrowed from teacher ex - what does this do?		
-		print "Some bad shit went down.  Aliens are all over this fucker.  Watch out."	 
-		life = 1
-		self.location = a_place.location
+    def get_user_command(self):
+        global inventory
+        command1 = raw_input("What will you do?")
+        if command1 in commands:
+            verb = command1
+            command2 = raw_input("What will you %s with?" % verb)##escape and replace with verb
+            if (command2 in inventory):
+                tool = command2
+                command3 = raw_input("What will you %s the %s toward?" % verb, tool)
+                if command3 in enviroment:
+                    action = command1 + " " + command2 + " " + command3
+                    action_des = "You try to %s the %s with the %s" % command1, command3, command2
+                    return (action, action_des)
+            elif command2 in enviroment:
+                action = command1 + " " + command2
+                action_des = "You try to %s the %s" % command1, command2
+                return (action, action_des)
+            else:
+                print "What?"
+        elif command1 == 'help':
+			print "Inventory: " + str(inventory) + ", Commands: " + str(commands) + ", Enviroment: " + str(enviroment)
+        else:
+            """What?  Type 'help' for a list of commands, your inventory, and a list of things in the enviroment you have discovered.  Enter one of the command words for a prompt for another word to use with it."""
 
-	def play(self):
-		while life == 1:
-			Engine.get_user_command(self)
-			print action_des ##make this do something
-			Engine.perform_action(self)
-			
-		else:
-			Death.enter()
+    def perform_action(action):
+        if self.location == 1:
+            a_cc = Central_Corridor()
+            a_cc.ccinteraction(action)
+        if self.location == 2:
+            LaserWeaponArmory.lwainteraction(action)
+        if self.location == 3:
+            TheBridge.binteraction(action)
+        if self.location == 4:
+            EscapePod.epinteraction(action)
 
-
-	def get_user_command(self):
-
-			command1 = raw_input("What will you do?")
-			if command1 in commands:
-				command1 = verb								
-				command2 = raw_input("What will you %s with?" % verb)##escape and replace with verb
-#whats a use item? Do i need both?
-				if ((command2 in inventory) & (command2 in use_items)):
-						command2 = tool
-						command3 = raw_input("What will you %s the %s toward?" % verb, tool) 
-                				if command3 in enviroment:
-	                                                action = command1 + " " + command2 + " " + command3
-	                                                action_des = "You try to %s the %s with the %s" % command1, command3, command2
-						elif command2 in enviroment:
-							action = command1 + " " + command2 
-	                                                action_des = "You try to %s the %s" % command1, command2
-						else:
-							print "What?"					
-				else:
-							print "What?" 
-
-
-			elif command1 == help:
-				print "Inventory: " + inventory + ", Commands: " + commands + ", Enviroment: " + enviroment 
-
-			else:
-				"""What?  Type 'help' for a list of commands, your inventory, and a list of things in the enviroment you have discovered.  Enter one of the command words for a prompt for another word to use with it."""
-			
-
-	def perform_action(self):
-		if self.location == 1:
-			a_cc = Central_Corridor()
-			a_cc.ccinteraction(action)
-		if self.location == 2:
-			LaserWeaponArmory.lwainteraction(action)	
-		if self.location == 3:
-			TheBridge.binteraction(action)
-		if self.location == 4:
-			EscapePod.epinteraction(action)
 
 
 
 ####
 	#def enviroment:
-	
 
-	#def inventory:			
+
+	#def inventory:
 
 
 
 class Death(Scene):
-	
+
 	def enter(self):
 		print "you die."
 		exit(1)
@@ -146,7 +135,7 @@ class CentralCorridor(Scene):
 		#ccnative = ['Armory', 'Bridge', 'Escape']
 		#enviroment = ccnative + ccdiscovered
 		##add and preserve discovered enviromental items - this wont work
-		print ##description modified
+		print description
 
 	def ccinteraction(self, input):
 		if input == "enter armory":
@@ -155,14 +144,14 @@ class CentralCorridor(Scene):
 			TheBridge.enter()
 		if input == "enter pod":
 			EscapePod.enter()
-		
+
 class LaserWeaponArmory(Scene):
 
 	def enter(self):
 		description = """Gleaming lazer rifles and pistols line the walls.  You feel a confident stirring in your loins."""
 		description2 = "##?"
 		location = 2
-		describe(lwadetail, location)	
+		describe(lwadetail, location)
 
 	def lwainteraction(input):
 		if input == "enter corridor":
@@ -201,5 +190,12 @@ class EscapePod(Scene):
 #instance of scene class - replace w lower level call
 a_place = Scene(1)
 #instance of Engine class
-a_game = Engine() 
-a_game.play()
+a_game = Engine()
+
+while life == 1:
+	a_game.get_user_command()
+	print action_des ##make this do something
+	a_game.perfrom_action(action)
+Death.enter()
+
+#a_game.play()
